@@ -4,6 +4,7 @@ $(document).ready(function() {
     let formInput = $('#formInput');
     let bodyTable = $('#bodyTable');
 
+    //lấy toàn bộ dữ liệu từ api và ghép vào
     $.ajax({
         url: 'https://quangbuiminh.com/api/products',
         type: 'GET',
@@ -19,6 +20,7 @@ $(document).ready(function() {
             return;
         }
 
+        //gán dữ liệu vào thẻ HTML và sau đó gán vào phần body của bảng
         for (let i = 0; i < datas.length; i++) {
             html += '<tr id="product' + datas[i].id + '">';
             html += '<th>' + datas[i].id + '</th>';
@@ -37,22 +39,30 @@ $(document).ready(function() {
 
     });
 
+    //Bắt sự kiện khi bấm nút thêm mới sản phẩm
     $('#btnAddProduct').on('click', function () {
         document.getElementById('productModalTitle').innerText = 'Thêm sản phẩm';
+
+        //Xóa các dữ liệu ở các ô input
         formInput.find('#id').remove();
         ['name', 'price', 'quantity', 'description', 'product_site', 'created_by'].forEach(field => {
             productModal.find('#' + field).val('');
         });
+
         productModal.modal('show');
     });
 
+    //Validate Input sau khi submit form và xử lý dữ liệu sau khi submit form
     productModal.find('form').validate({
         submitHandler: function () {
             let id = formInput.find('#id').val();
             let data = formInput.serialize();
 
+            //Nếu không tồn tại id thì thêm mới dữ liệu
+            //Nếu tồn tại id thì cập nhật dữ liệu của bản ghi theo id
             if(id == undefined) {
 
+                //Thêm mới 1 bản ghi
                 $.ajax({
                     url: 'https://quangbuiminh.com/api/products',
                     type: 'POST',
@@ -65,6 +75,7 @@ $(document).ready(function() {
                     }
                     notifyMessage('Thông báo!', res.message, 'success',2000);
 
+                    //Thêm mới thành công và thêm 1 row chứa thông tin của sản phẩm vừa thêm vào bảng
                     let data = res.data;
                     let htmlTr = '';
                     htmlTr += '<tr id="product' + data.id + '">';
@@ -84,6 +95,8 @@ $(document).ready(function() {
                     productModal.modal('hide');
                 });
             } else {
+
+                //Cập nhập dữ liệu
                 $.ajax({
                     url: 'https://quangbuiminh.com/api/products/' + id,
                     type: 'POST',
@@ -94,6 +107,8 @@ $(document).ready(function() {
                         notifyMessage('Thông báo lỗi!', res.message, 'error');
                         return;
                     }
+
+                    //Cập nhật dữ liệu lên serve thành công thì cập nhật lại dữ liệu hiển thị bên FE
                     formInput.find('#id').remove();
                     notifyMessage('Thông báo!', res.message, 'success',2000);
 
@@ -117,6 +132,7 @@ $(document).ready(function() {
             }
         },
 
+        //Validate các trường đầu vào
         rules: {
             name: {
                 required: true,
@@ -164,9 +180,11 @@ $(document).ready(function() {
         }
     });
 
+    //Xử lý sự kiện bấm nút edit
     bodyTable.on('click', '.btnEdit',function () {
         let id = $(this).attr('data-id');
 
+        //Lấy dữ liệu của 1 sản phẩm và gán vào form
         $.ajax({
             url: 'https://quangbuiminh.com/api/products/' + id,
             type: 'GET',
@@ -183,6 +201,7 @@ $(document).ready(function() {
 
             formInput.append('<input type="hidden" name="id" id="id" value="' + id +'">');
 
+            //Gán các dữ liệu vào từng ô input tương ứng
             ['name', 'price', 'quantity', 'description', 'product_site', 'created_by'].forEach(field => {
                 productModal.find('#' + field).val(data[field]);
             });
@@ -191,8 +210,10 @@ $(document).ready(function() {
         });
     });
 
+    //Xóa 1 bản ghi
     bodyTable.on('click', '.btnDelete',function () {
 
+        //Hiển thị thông báo cảnh cáo
         Swal.fire({
             title: 'Cảnh báo!',
             icon: 'warning',
@@ -203,6 +224,8 @@ $(document).ready(function() {
             confirmButtonText: 'Xóa',
             cancelButtonText: 'Hủy bỏ',
         }).then((result) => {
+
+            //Nếu người dùng xác nhận xóa thì gọi api để xóa dữ liệu
             if (result.value) {
                 let id = $(this).attr('data-id');
 
@@ -215,6 +238,8 @@ $(document).ready(function() {
                         return;
                     }
                     notifyMessage('Thông báo!', res.message, 'success',2000);
+
+                    //Xóa dữ liệu thành công thì ẩn dòng đó ở trên table
                     $('#product' + id).remove();
                 });
 
@@ -222,6 +247,7 @@ $(document).ready(function() {
         })
     });
 
+    //function dùng để hiển thị thông báo dùng sweetalert2
     function notifyMessage(title = 'Lỗi!', message = '', type = 'error', timeout = 5000) {
         if (!timeout) {
             timeout = 5000;
