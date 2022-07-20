@@ -13,8 +13,33 @@
 </head>
 <body>
 <div class="container">
+
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+        <a class="navbar-brand" href="#">Website CRUD Product</a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+            <ul class="navbar-nav mr-auto">
+
+            </ul>
+            <form class="form-inline my-2 my-lg-0" id="formSearch" method="post">
+                <input class="form-control mr-sm-2" type="search" name="value" placeholder="Nội dung tìm kiếm" aria-label="Search">
+                <select class="form-control mr-sm-2" name="field">
+                    <option value="name" selected>Tên</option>
+                    <option value="price">Giá</option>
+                    <option value="quantity">Số lượng</option>
+                    <option value="product_site">Nơi sản xuất</option>
+                    <option value="created_by">Người thêm</option>
+                </select>
+                <button class="btn btn-outline-success my-2 my-sm-0 mr-2" type="submit" id="btnSearch">Tìm kiếm</button>
+                <button class="btn btn-outline-secondary my-2 my-sm-0" type="submit" id="btnCancelSearch">Hủy</button>
+            </form>
+        </div>
+    </nav>
     <br>
-    <h1 style="text-align: center">Table</h1>
+    <h1 style="text-align: center">Danh sách sản phẩm</h1>
     <br>
     <div style="text-align: right">
         <button type="button" class="btn btn-primary" id="btnAddProduct">Thêm sản phẩm</button>
@@ -49,7 +74,7 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="productModalTitle"></h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <button type="button" class="close btnClose" data-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
@@ -99,7 +124,7 @@
 
                     <div class="modal-footer">
                         <button type="submit" class="btn btn-primary" id="btnSave">Lưu dữ liệu</button>
-                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                        <button type="button" class="btn btn-secondary btnClose" data-dismiss="modal">Đóng</button>
                     </div>
                 </form>
             </div>

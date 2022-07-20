@@ -10,33 +10,7 @@ $(document).ready(function() {
         type: 'GET',
     }).done(function(res) {
 
-        let datas = res.data;
-        let tableBody = document.getElementById("bodyTable");
-        let html  = '';
-
-        if (datas.length == 0) {
-            html += '<tr><th colspan="9" style="text-align: center">Không có kết quả phù hợp</th></tr>';
-            tableBody.innerHTML = html;
-            return;
-        }
-
-        //gán dữ liệu vào thẻ HTML và sau đó gán vào phần body của bảng
-        for (let i = 0; i < datas.length; i++) {
-            html += '<tr id="product' + datas[i].id + '">';
-            html += '<th>' + datas[i].id + '</th>';
-            html += '<th>' + datas[i].name + '</th>';
-            html += '<th>' + (datas[i].description == null ? '' : datas[i].description) + '</th>';
-            html += '<th>' + (datas[i].price == null ? '' : datas[i].price) + '</th>';
-            html += '<th>' + datas[i].quantity + '</th>';
-            html += '<th>' + (datas[i].product_site == null ? '' : datas[i].product_site) + '</th>';
-            html += '<th>' + (datas[i].created_by == null ? '' : datas[i].created_by) + '</th>';
-            html += '<th><button type="button" class="btn btn-outline-success btnEdit" data-id="' + datas[i].id + '">Chỉnh sửa</button></th>';
-            html += '<th><button type="button" class="btn btn-outline-danger btnDelete" data-id="' + datas[i].id + '">Xóa</button></th>';
-            html += '</tr>';
-        }
-        tableBody.innerHTML = html;
-        notifyMessage('Thông báo!', res.message, 'success');
-
+        setBodyTable(res.data)
     });
 
     //Bắt sự kiện khi bấm nút thêm mới sản phẩm
@@ -50,6 +24,41 @@ $(document).ready(function() {
         });
 
         productModal.modal('show');
+    });
+
+    //Xử lý sự kiện bấm nút edit
+    bodyTable.on('click', '.btnEdit',function () {
+        let id = $(this).attr('data-id');
+
+        //Lấy dữ liệu của 1 sản phẩm và gán vào form
+        $.ajax({
+            url: 'https://quangbuiminh.com/api/products/' + id,
+            type: 'GET',
+        }).done(function(res) {
+            if(res.status != 200) {
+                notifyMessage('Thông báo lỗi!', res.message, 'error');
+                return;
+            }
+            formInput.find('#id').remove();
+
+            document.getElementById('productModalTitle').innerText = 'Chỉnh sửa thông tin sản phẩm';
+
+            let data = res.data;
+
+            formInput.append('<input type="hidden" name="id" id="id" value="' + id +'">');
+
+            //Gán các dữ liệu vào từng ô input tương ứng
+            ['name', 'price', 'quantity', 'description', 'product_site', 'created_by'].forEach(field => {
+                productModal.find('#' + field).val(data[field]);
+            });
+
+            productModal.modal('show');
+        });
+    });
+
+    //Bắt sự kiện khi đóng modal
+    $('.btnClose').on('click', function () {
+        productModal.find('.is-invalid').removeClass('is-invalid'); //xóa validate
     });
 
     //Validate Input sau khi submit form và xử lý dữ liệu sau khi submit form
@@ -180,36 +189,6 @@ $(document).ready(function() {
         }
     });
 
-    //Xử lý sự kiện bấm nút edit
-    bodyTable.on('click', '.btnEdit',function () {
-        let id = $(this).attr('data-id');
-
-        //Lấy dữ liệu của 1 sản phẩm và gán vào form
-        $.ajax({
-            url: 'https://quangbuiminh.com/api/products/' + id,
-            type: 'GET',
-        }).done(function(res) {
-            if(res.status != 200) {
-                notifyMessage('Thông báo lỗi!', res.message, 'error');
-                return;
-            }
-            formInput.find('#id').remove();
-
-            document.getElementById('productModalTitle').innerText = 'Chỉnh sửa thông tin sản phẩm';
-
-            let data = res.data;
-
-            formInput.append('<input type="hidden" name="id" id="id" value="' + id +'">');
-
-            //Gán các dữ liệu vào từng ô input tương ứng
-            ['name', 'price', 'quantity', 'description', 'product_site', 'created_by'].forEach(field => {
-                productModal.find('#' + field).val(data[field]);
-            });
-
-            productModal.modal('show');
-        });
-    });
-
     //Xóa 1 bản ghi
     bodyTable.on('click', '.btnDelete',function () {
 
@@ -246,6 +225,67 @@ $(document).ready(function() {
             }
         })
     });
+
+    $('#btnSearch').on('click', function (event) {
+
+        event.preventDefault();
+        let dataSearch = $('#formSearch').serialize();
+
+        $.ajax({
+            url: 'https://quangbuiminh.com/api/products/search',
+            type: 'GET',
+            dataType: 'JSON',
+            data: dataSearch
+        }).done(function(res) {
+            if(res.status != '200') {
+                notifyMessage('Thông báo lỗi!', res.message, 'error');
+                return;
+            }
+            setBodyTable(res.data);
+        })
+    })
+
+    $('#btnCancelSearch').on('click', function (event) {
+        $.ajax({
+            url: 'https://quangbuiminh.com/api/products',
+            type: 'GET',
+        }).done(function(res) {
+            if(res.status != '200') {
+                notifyMessage('Thông báo lỗi!', res.message, 'error');
+                return;
+            }
+            setBodyTable(res.data);
+        })
+    })
+
+    function setBodyTable(datas) {
+        let tableBody = document.getElementById("bodyTable");
+        let html  = '';
+
+        if (datas.length == 0) {
+            html += '<tr><th colspan="9" style="text-align: center">Không có kết quả phù hợp</th></tr>';
+            tableBody.innerHTML = html;
+            return;
+        }
+
+        //gán dữ liệu vào thẻ HTML và sau đó gán vào phần body của bảng
+        for (let i = 0; i < datas.length; i++) {
+            html += '<tr id="product' + datas[i].id + '">';
+            html += '<th>' + datas[i].id + '</th>';
+            html += '<th>' + datas[i].name + '</th>';
+            html += '<th>' + (datas[i].description == null ? '' : datas[i].description) + '</th>';
+            html += '<th>' + (datas[i].price == null ? '' : datas[i].price) + '</th>';
+            html += '<th>' + datas[i].quantity + '</th>';
+            html += '<th>' + (datas[i].product_site == null ? '' : datas[i].product_site) + '</th>';
+            html += '<th>' + (datas[i].created_by == null ? '' : datas[i].created_by) + '</th>';
+            html += '<th><button type="button" class="btn btn-outline-success btnEdit" data-id="' + datas[i].id + '">Chỉnh sửa</button></th>';
+            html += '<th><button type="button" class="btn btn-outline-danger btnDelete" data-id="' + datas[i].id + '">Xóa</button></th>';
+            html += '</tr>';
+        }
+
+        tableBody.innerHTML = html;
+    }
+
 
     //function dùng để hiển thị thông báo dùng sweetalert2
     function notifyMessage(title = 'Lỗi!', message = '', type = 'error', timeout = 5000) {
